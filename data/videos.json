@@ -1,0 +1,62 @@
+[
+  {
+    "id": "video-01",
+    "label": "Video 01",
+    "url": "/videos/campfire.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-02",
+    "label": "Video 02",
+    "url": "/videos/cleaningcar.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-03",
+    "label": "Video 03",
+    "url": "/videos/goingshopping.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-04",
+    "label": "Video 04",
+    "url": "/videos/leavesfalling.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-05",
+    "label": "Video 05",
+    "url": "/videos/nature.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-06",
+    "label": "Video 06",
+    "url": "/videos/persononahike.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-07",
+    "label": "Video 07",
+    "url": "/videos/personplayingpool.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-08",
+    "label": "Video 08",
+    "url": "/videos/playing with a dog.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-09",
+    "label": "Video 09",
+    "url": "/videos/pouring water.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-10",
+    "label": "Video 10",
+    "url": "/videos/rainingontrees.mp4",
+    "correctAnswer": "ai"
+  }
+]

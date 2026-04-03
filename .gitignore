@@ -1,0 +1,6 @@
+.next
+node_modules
+data/submissions
+.DS_Store
+*.log
+.env
