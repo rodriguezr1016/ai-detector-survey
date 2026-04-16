@@ -1,62 +1,302 @@
 [
   {
     "id": "video-01",
-    "label": "Video 01",
-    "url": "/videos/campfire.mp4",
-    "correctAnswer": "ai"
+    "label": "13 Copy",
+    "url": "/videos/13 - Copy.mp4",
+    "correctAnswer": "real"
   },
   {
     "id": "video-02",
-    "label": "Video 02",
-    "url": "/videos/cleaningcar.mp4",
-    "correctAnswer": "ai"
+    "label": "2 Copy",
+    "url": "/videos/2 - Copy.mp4",
+    "correctAnswer": "real"
   },
   {
     "id": "video-03",
-    "label": "Video 03",
-    "url": "/videos/goingshopping.mp4",
+    "label": "copy16",
+    "url": "/videos/copy16.mp4",
     "correctAnswer": "ai"
   },
   {
     "id": "video-04",
-    "label": "Video 04",
-    "url": "/videos/leavesfalling.mp4",
+    "label": "Lunchbreak",
+    "url": "/videos/Lunchbreak.mp4",
     "correctAnswer": "ai"
   },
   {
     "id": "video-05",
-    "label": "Video 05",
-    "url": "/videos/nature.mp4",
-    "correctAnswer": "ai"
+    "label": "25 Copy",
+    "url": "/videos/25 - Copy.mp4",
+    "correctAnswer": "real"
   },
   {
     "id": "video-06",
-    "label": "Video 06",
-    "url": "/videos/persononahike.mp4",
-    "correctAnswer": "ai"
+    "label": "16 Copy",
+    "url": "/videos/16 - Copy.mp4",
+    "correctAnswer": "real"
   },
   {
     "id": "video-07",
-    "label": "Video 07",
-    "url": "/videos/personplayingpool.mp4",
+    "label": "ParkingLot",
+    "url": "/videos/ParkingLot.mp4",
     "correctAnswer": "ai"
   },
   {
     "id": "video-08",
-    "label": "Video 08",
-    "url": "/videos/playing with a dog.mp4",
+    "label": "copy1",
+    "url": "/videos/copy1.mp4",
     "correctAnswer": "ai"
   },
   {
     "id": "video-09",
-    "label": "Video 09",
-    "url": "/videos/pouring water.mp4",
+    "label": "copy12",
+    "url": "/videos/copy12.mp4",
     "correctAnswer": "ai"
   },
   {
     "id": "video-10",
-    "label": "Video 10",
-    "url": "/videos/rainingontrees.mp4",
+    "label": "18 Copy",
+    "url": "/videos/18 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-11",
+    "label": "8 Copy",
+    "url": "/videos/8 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-12",
+    "label": "15 Copy",
+    "url": "/videos/15 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-13",
+    "label": "21 Copy",
+    "url": "/videos/21 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-14",
+    "label": "copy13",
+    "url": "/videos/copy13.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-15",
+    "label": "10 Copy",
+    "url": "/videos/10 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-16",
+    "label": "copy3",
+    "url": "/videos/copy3.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-17",
+    "label": "copy4",
+    "url": "/videos/copy4.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-18",
+    "label": "copy10",
+    "url": "/videos/copy10.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-19",
+    "label": "20 Copy",
+    "url": "/videos/20 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-20",
+    "label": "19 Copy",
+    "url": "/videos/19 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-21",
+    "label": "copy2",
+    "url": "/videos/copy2.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-22",
+    "label": "11 Copy",
+    "url": "/videos/11 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-23",
+    "label": "copy14",
+    "url": "/videos/copy14.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-24",
+    "label": "9 Copy",
+    "url": "/videos/9 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-25",
+    "label": "copy6",
+    "url": "/videos/copy6.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-26",
+    "label": "Dave&Busters",
+    "url": "/videos/Dave&Busters.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-27",
+    "label": "copy9",
+    "url": "/videos/copy9.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-28",
+    "label": "3 Copy",
+    "url": "/videos/3 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-29",
+    "label": "copy7",
+    "url": "/videos/copy7.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-30",
+    "label": "copy15",
+    "url": "/videos/copy15.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-31",
+    "label": "GroceryStore",
+    "url": "/videos/GroceryStore.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-32",
+    "label": "1 Copy",
+    "url": "/videos/1 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-33",
+    "label": "Dog Skateboard Video wtaW0I2F",
+    "url": "/videos/Dog_Skateboard_Video_wtaW0I2F.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-34",
+    "label": "ParkWalk",
+    "url": "/videos/ParkWalk.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-35",
+    "label": "copy5",
+    "url": "/videos/copy5.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-36",
+    "label": "7 Copy",
+    "url": "/videos/7 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-37",
+    "label": "copy8",
+    "url": "/videos/copy8.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-38",
+    "label": "CardboardProject",
+    "url": "/videos/CardboardProject.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-39",
+    "label": "23 Copy",
+    "url": "/videos/23 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-40",
+    "label": "17 Copy",
+    "url": "/videos/17 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-41",
+    "label": "24 Copy",
+    "url": "/videos/24 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-42",
+    "label": "4 Copy",
+    "url": "/videos/4 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-43",
+    "label": "MarchingBand",
+    "url": "/videos/MarchingBand.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-44",
+    "label": "22 Copy",
+    "url": "/videos/22 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-45",
+    "label": "14 Copy",
+    "url": "/videos/14 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-46",
+    "label": "6 Copy",
+    "url": "/videos/6 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-47",
+    "label": "BeachWalk",
+    "url": "/videos/BeachWalk.mp4",
+    "correctAnswer": "ai"
+  },
+  {
+    "id": "video-48",
+    "label": "12 Copy",
+    "url": "/videos/12 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-49",
+    "label": "5 Copy",
+    "url": "/videos/5 - Copy.mp4",
+    "correctAnswer": "real"
+  },
+  {
+    "id": "video-50",
+    "label": "copy11",
+    "url": "/videos/copy11.mp4",
     "correctAnswer": "ai"
   }
 ]

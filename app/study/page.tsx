@@ -9,10 +9,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { VideoSource } from "@/lib/types";
+import { QuestionnaireData, VideoResponse, VideoSource } from "@/lib/types";
 
 type StudyState = {
   currentVideoIndex: number;
+  batchIndex: number;
   batchNumber: number;
   totalBatches: number;
   videos: VideoSource[];
@@ -20,10 +21,11 @@ type StudyState = {
 
 const videosPerSurvey = 10;
 
-function formatSeconds(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+function formatElapsedTime(totalCentiseconds: number) {
+  const minutes = Math.floor(totalCentiseconds / 6000);
+  const seconds = Math.floor((totalCentiseconds % 6000) / 100);
+  const centiseconds = totalCentiseconds % 100;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(centiseconds).padStart(2, "0")}`;
 }
 
 export default function StudyPage() {
@@ -32,19 +34,22 @@ export default function StudyPage() {
   const timerRef = useRef<number | null>(null);
   const [sessionId, setSessionId] = useState("");
   const [studyState, setStudyState] = useState<StudyState | null>(null);
-  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<"ai" | "real" | "">("");
   const [reason, setReason] = useState("");
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [responses, setResponses] = useState<VideoResponse[]>([]);
+  const [hasStartedVideo, setHasStartedVideo] = useState(false);
 
   useEffect(() => {
     const storedSessionId = localStorage.getItem("participantSessionId");
+    const storedQuestionnaire = localStorage.getItem("studyQuestionnaire");
 
-    if (!storedSessionId) {
-      router.replace("/");
+    if (!storedSessionId || !storedQuestionnaire) {
+      router.replace("/questionnaire");
       return;
     }
 
@@ -55,6 +60,11 @@ export default function StudyPage() {
     async function loadVideos() {
       const storedSessionId = localStorage.getItem("participantSessionId");
       const storedStudyState = localStorage.getItem("studyState");
+      const storedResponses = localStorage.getItem("studyResponses");
+
+      if (storedResponses) {
+        setResponses(JSON.parse(storedResponses) as VideoResponse[]);
+      }
 
       if (storedStudyState) {
         setStudyState(JSON.parse(storedStudyState) as StudyState);
@@ -75,12 +85,14 @@ export default function StudyPage() {
       }
 
       const data = (await response.json()) as {
+        batchIndex: number;
         batchNumber: number;
         totalBatches: number;
         videos: VideoSource[];
       };
       const nextState: StudyState = {
         currentVideoIndex: 0,
+        batchIndex: data.batchIndex,
         batchNumber: data.batchNumber,
         totalBatches: data.totalBatches,
         videos: data.videos,
@@ -105,12 +117,13 @@ export default function StudyPage() {
   const currentBatchNumber = studyState?.batchNumber ?? 0;
 
   useEffect(() => {
-    setTimerSeconds(0);
+    setElapsedTime(0);
     setTimerRunning(false);
     setSelectedAnswer("");
     setReason("");
     setShowReasonModal(false);
     setError("");
+    setHasStartedVideo(false);
 
     if (timerRef.current) {
       window.clearInterval(timerRef.current);
@@ -153,9 +166,10 @@ export default function StudyPage() {
     }
 
     setTimerRunning(true);
+    setHasStartedVideo(true);
     timerRef.current = window.setInterval(() => {
-      setTimerSeconds((current) => current + 1);
-    }, 1000);
+      setElapsedTime((current) => current + 1);
+    }, 10);
   }
 
   function handleStart() {
@@ -179,6 +193,11 @@ export default function StudyPage() {
 
     if (!selectedAnswer) {
       setError("Choose either AI or Real before submitting.");
+      return;
+    }
+
+    if (!hasStartedVideo) {
+      setError("Press Start before submitting an answer.");
       return;
     }
 
@@ -206,20 +225,9 @@ export default function StudyPage() {
       return;
     }
 
-    const response = await fetch("/api/session/complete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ sessionId }),
-    });
-
-    if (!response.ok) {
-      const body = (await response.json()) as { error?: string };
-      throw new Error(body.error || "Unable to complete the session.");
-    }
-
+    localStorage.removeItem("studyQuestionnaire");
     localStorage.removeItem("studyState");
+    localStorage.removeItem("studyResponses");
     router.push("/complete");
   }
 
@@ -235,12 +243,9 @@ export default function StudyPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/response", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const nextResponses = [
+        ...responses,
+        {
           sessionId,
           videoId: activeVideo.id,
           videoName: activeVideo.label,
@@ -249,16 +254,40 @@ export default function StudyPage() {
           positionInBatch: currentVideoNumber,
           answer: selectedAnswer,
           reason,
-          elapsedSeconds: timerSeconds,
-        }),
-      });
+          elapsedTime: elapsedTime / 100,
+        },
+      ];
 
-      if (!response.ok) {
-        const body = (await response.json()) as { error?: string };
-        throw new Error(body.error || "Unable to save this response.");
+      setResponses(nextResponses);
+      localStorage.setItem("studyResponses", JSON.stringify(nextResponses));
+      setShowReasonModal(false);
+
+      if (studyState && studyState.currentVideoIndex + 1 >= studyState.videos.length) {
+        const storedQuestionnaire = localStorage.getItem("studyQuestionnaire");
+
+        if (!storedQuestionnaire) {
+          throw new Error("The questionnaire data is missing.");
+        }
+
+        const completionResponse = await fetch("/api/session/finalize", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sessionId,
+            batchIndex: studyState.batchIndex,
+            questionnaire: JSON.parse(storedQuestionnaire) as QuestionnaireData,
+            responses: nextResponses,
+          }),
+        });
+
+        if (!completionResponse.ok) {
+          const body = (await completionResponse.json()) as { error?: string };
+          throw new Error(body.error || "Unable to finalize the session.");
+        }
       }
 
-      setShowReasonModal(false);
       await advanceToNextVideo();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Something went wrong.");
@@ -288,7 +317,7 @@ export default function StudyPage() {
 
         <div className="stats">
           <span className="pill">Video {currentVideoNumber} / {videosPerSurvey}</span>
-          <span className="pill">Timer {formatSeconds(timerSeconds)}</span>
+          <span className="pill">Elapsed time {formatElapsedTime(elapsedTime)}</span>
         </div>
 
         <div className="video-frame">

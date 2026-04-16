@@ -1,8 +1,10 @@
 import { WithId } from "mongodb";
 import { getDatabase } from "@/lib/mongodb";
 import {
+  CompletionPayload,
   QuestionnaireData,
   SessionAssignment,
+  StoredVideoResponse,
   StudyUsageState,
   VideoResponse,
 } from "@/lib/types";
@@ -19,16 +21,10 @@ type SessionDocument = {
   sessionId: string;
   createdAt: string;
   updatedAt: string;
-  status: "assigned" | "completed";
+  status: "completed";
   assignment: SessionAssignment;
-  questionnaire: QuestionnaireData | null;
-  responses: Array<
-    Omit<VideoResponse, "sessionId"> & {
-      isCorrect: boolean;
-      correctAnswer: "ai" | "real";
-      savedAt: string;
-    }
-  >;
+  questionnaire: QuestionnaireData;
+  responses: StoredVideoResponse[];
   markdownReport: string;
 };
 
@@ -68,12 +64,17 @@ function appendQuestionnaireMarkdown(currentMarkdown: string, questionnaire: Que
   return `${currentMarkdown}## Questionnaire Completed
 
 - Timestamp: ${timestamp()}
+- Ethnicity: ${questionnaire.ethnicity}
 - Age: ${questionnaire.age}
 - Gender: ${questionnaire.gender}
-- Education level: ${questionnaire.educationLevel}
-- AI content experience: ${questionnaire.aiContentExperience}
-- Video production experience: ${questionnaire.videoProductionExperience}
-- Eye problems: ${questionnaire.eyeProblems}
+- Gender self-description: ${questionnaire.genderSelfDescribe || "N/A"}
+- Visual impairment: ${questionnaire.visualImpairment}
+- Student: ${questionnaire.studentStatus}
+- AI experience (1-10): ${questionnaire.aiExperience}
+- Filming experience (1-10): ${questionnaire.filmingExperience}
+- Editing experience (1-10): ${questionnaire.editingExperience}
+- Computer Science experience (1-10): ${questionnaire.computerScienceExperience}
+- Plant identification from image (1-10): ${questionnaire.plantIdentificationSkill}
 
 `;
 }
@@ -91,7 +92,7 @@ function appendResponseMarkdown(currentMarkdown: string, response: VideoResponse
 - Answer: ${response.answer}
 - Correct: ${isCorrect ? "Yes" : "No"}
 - Reason: ${response.reason.replace(/\n/g, " ").trim()}
-- Time elapsed (seconds): ${response.elapsedSeconds}
+- Elapsed time: ${response.elapsedTime.toFixed(2)} seconds
 
 `;
 }
@@ -191,13 +192,8 @@ async function resetStudyCycle() {
   };
 }
 
-async function getSession(sessionId: string) {
-  const { sessions } = await getCollections();
-  return sessions.findOne({ sessionId });
-}
-
-export async function assignBatchToSession(sessionId: string) {
-  const { studyState, sessions } = await getCollections();
+export async function getActiveBatchAssignment() {
+  const { studyState } = await getCollections();
   const videoBatches = getVideoBatches(getVideoLibrary());
   let usageState = await ensureStudyState();
 
@@ -211,177 +207,124 @@ export async function assignBatchToSession(sessionId: string) {
     throw new Error("All configured video batches have already been assigned.");
   }
 
-  const assignedAt = timestamp();
-  const assignment: SessionAssignment = {
-    batchIndex: availableBatch.batchIndex,
-    assignedAt,
-    completedAt: null,
-    status: "assigned",
-  };
-
-  const updatedState = await studyState.findOneAndUpdate(
-    { _id: studyStateDocumentId },
-    {
-      $set: {
-        [`sessionAssignments.${sessionId}`]: assignment,
-      },
-    },
-    { returnDocument: "after" },
-  );
-
-  if (!updatedState) {
-    return assignBatchToSession(sessionId);
-  }
-
-  const assignmentSummary = {
+  return {
     batchIndex: availableBatch.batchIndex,
     batchNumber: availableBatch.batchIndex + 1,
     totalBatches: videoBatches.length,
-    completedBatchUsage: updatedState.batches[availableBatch.batchIndex].completedSessions,
+    completedBatchUsage: usageState.batches[availableBatch.batchIndex].completedSessions,
+    videos: videoBatches[availableBatch.batchIndex],
   };
+}
 
-  await sessions.insertOne({
-    sessionId,
-    createdAt: assignedAt,
-    updatedAt: assignedAt,
-    status: "assigned",
-    assignment,
-    questionnaire: null,
-    responses: [],
-    markdownReport: buildInitialMarkdown(sessionId, assignmentSummary),
+function buildStoredResponses(responses: VideoResponse[]): StoredVideoResponse[] {
+  return responses.map((response) => {
+    const correctAnswer = getCorrectAnswerForVideo(response.videoId);
+
+    if (!correctAnswer) {
+      throw new Error(`Missing correct answer for video ${response.videoId}.`);
+    }
+
+    return {
+      videoId: response.videoId,
+      videoName: response.videoName,
+      videoLabel: response.videoLabel,
+      batchNumber: response.batchNumber,
+      positionInBatch: response.positionInBatch,
+      answer: response.answer,
+      correctAnswer,
+      isCorrect: response.answer === correctAnswer,
+      reason: response.reason,
+      elapsedTime: response.elapsedTime,
+      savedAt: timestamp(),
+    };
   });
-
-  return assignmentSummary;
 }
 
-export async function getAssignedBatch(sessionId: string) {
-  const session = await getSession(sessionId);
-  const videoBatches = getVideoBatches(getVideoLibrary());
+function buildMarkdownReport(
+  sessionId: string,
+  assignment: { batchNumber: number; totalBatches: number; completedBatchUsage: number },
+  questionnaire: QuestionnaireData,
+  responses: VideoResponse[],
+  score: { correct: number; total: number; percent: number },
+) {
+  let markdown = buildInitialMarkdown(sessionId, assignment);
+  markdown = appendQuestionnaireMarkdown(markdown, questionnaire);
 
-  if (!session) {
-    throw new Error("This session does not have a batch assignment.");
+  for (const response of responses) {
+    markdown = appendResponseMarkdown(markdown, response);
   }
 
-  const batchVideos = videoBatches[session.assignment.batchIndex];
-
-  if (!batchVideos) {
-    throw new Error("The assigned batch is no longer available.");
-  }
-
-  return {
-    assignment: session.assignment,
-    videos: batchVideos,
-    totalBatches: videoBatches.length,
-  };
+  return appendCompletionMarkdown(markdown, score);
 }
 
-export async function appendQuestionnaire(sessionId: string, questionnaire: QuestionnaireData) {
-  const { sessions } = await getCollections();
-  const session = await getSession(sessionId);
-
-  if (!session) {
-    throw new Error("This session could not be found.");
-  }
-
-  await sessions.updateOne(
-    { sessionId },
-    {
-      $set: {
-        questionnaire,
-        updatedAt: timestamp(),
-        markdownReport: appendQuestionnaireMarkdown(session.markdownReport, questionnaire),
-      },
-    },
-  );
-}
-
-export async function appendVideoResponse(response: VideoResponse) {
-  const { sessions } = await getCollections();
-  const session = await getSession(response.sessionId);
-
-  if (!session) {
-    throw new Error("This session could not be found.");
-  }
-
-  const savedAt = timestamp();
-  const correctAnswer = getCorrectAnswerForVideo(response.videoId);
-
-  if (!correctAnswer) {
-    throw new Error(`Missing correct answer for video ${response.videoId}.`);
-  }
-
-  await sessions.updateOne(
-    { sessionId: response.sessionId },
-    {
-      $push: {
-        responses: {
-          videoId: response.videoId,
-          videoName: response.videoName,
-          videoLabel: response.videoLabel,
-          batchNumber: response.batchNumber,
-          positionInBatch: response.positionInBatch,
-          answer: response.answer,
-          correctAnswer,
-          isCorrect: response.answer === correctAnswer,
-          reason: response.reason,
-          elapsedSeconds: response.elapsedSeconds,
-          savedAt,
-        },
-      },
-      $set: {
-        updatedAt: savedAt,
-        markdownReport: appendResponseMarkdown(session.markdownReport, response),
-      },
-    },
-  );
-}
-
-export async function markSessionComplete(sessionId: string) {
+export async function finalizeSession(payload: CompletionPayload) {
   const { sessions, studyState } = await getCollections();
-  const session = await getSession(sessionId);
+  const sessionExists = await sessions.findOne({ sessionId: payload.sessionId });
 
-  if (!session) {
-    throw new Error("This session could not be found.");
-  }
-
-  if (session.status === "completed") {
+  if (sessionExists) {
     return;
   }
 
-  const completedAt = timestamp();
-  const correctResponses = session.responses.filter((response) => response.isCorrect).length;
-  const totalResponses = session.responses.length;
-  const percent = totalResponses === 0 ? 0 : Math.round((correctResponses / totalResponses) * 100);
+  const usageState = await ensureStudyState();
+  const batch = usageState.batches[payload.batchIndex];
 
-  await sessions.updateOne(
-    { sessionId },
-    {
-      $set: {
-        status: "completed",
-        updatedAt: completedAt,
-        "assignment.status": "completed",
-        "assignment.completedAt": completedAt,
-        markdownReport: appendCompletionMarkdown(session.markdownReport, {
-          correct: correctResponses,
-          total: totalResponses,
-          percent,
-        }),
+  if (!batch) {
+    throw new Error("The requested batch is not available.");
+  }
+
+  const createdAt = timestamp();
+  const storedResponses = buildStoredResponses(payload.responses);
+  const correctResponses = storedResponses.filter((response) => response.isCorrect).length;
+  const totalResponses = storedResponses.length;
+  const percent = totalResponses === 0 ? 0 : Math.round((correctResponses / totalResponses) * 100);
+  const assignment: SessionAssignment = {
+    batchIndex: payload.batchIndex,
+    assignedAt: createdAt,
+    completedAt: createdAt,
+    status: "completed",
+  };
+
+  await sessions.insertOne({
+    sessionId: payload.sessionId,
+    createdAt,
+    updatedAt: createdAt,
+    status: "completed",
+    assignment,
+    questionnaire: payload.questionnaire,
+    responses: storedResponses,
+    markdownReport: buildMarkdownReport(
+      payload.sessionId,
+      {
+        batchNumber: payload.batchIndex + 1,
+        totalBatches: usageState.batches.length,
+        completedBatchUsage: batch.completedSessions,
       },
-    },
-  );
+      payload.questionnaire,
+      payload.responses,
+      {
+        correct: correctResponses,
+        total: totalResponses,
+        percent,
+      },
+    ),
+  });
 
   await studyState.updateOne(
     { _id: studyStateDocumentId },
     {
       $inc: {
-        [`batches.${session.assignment.batchIndex}.completedSessions`]: 1,
+        [`batches.${payload.batchIndex}.completedSessions`]: 1,
       },
       $set: {
-        [`sessionAssignments.${sessionId}.status`]: "completed",
-        [`sessionAssignments.${sessionId}.completedAt`]: completedAt,
+        [`sessionAssignments.${payload.sessionId}`]: assignment,
       },
     },
   );
+}
+
+async function getSession(sessionId: string) {
+  const { sessions } = await getCollections();
+  return sessions.findOne({ sessionId });
 }
 
 export async function getSessionReport(sessionId: string) {

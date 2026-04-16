@@ -6,32 +6,37 @@ import { QuestionnaireData } from "@/lib/types";
 
 const genderOptions = [
   { value: "", label: "Select gender" },
-  { value: "female", label: "Female" },
-  { value: "male", label: "Male" },
+  { value: "woman", label: "Woman" },
+  { value: "man", label: "Man" },
   { value: "non-binary", label: "Non-binary" },
   { value: "prefer-not-to-say", label: "Prefer not to say" },
   { value: "self-describe", label: "Self-describe" },
 ];
 
-const educationOptions = [
-  { value: "", label: "Select education level" },
-  { value: "less-than-high-school", label: "Less than high school" },
-  { value: "high-school", label: "High school diploma or GED" },
-  { value: "some-college", label: "Some college" },
-  { value: "associate", label: "Associate degree" },
-  { value: "bachelor", label: "Bachelor's degree" },
-  { value: "master", label: "Master's degree" },
-  { value: "doctorate", label: "Doctorate or professional degree" },
-  { value: "prefer-not-to-say", label: "Prefer not to say" },
+const ethnicityOptions = [
+  { value: "", label: "Select ethnicity" },
+  { value: "hispanic-latino-spanish-origin", label: "Hispanic/Latino/Spanish origin" },
+  { value: "white", label: "White" },
+  { value: "african-american", label: "African American" },
+  { value: "asian", label: "Asian" },
+  { value: "native-american-alaska-native", label: "Native American/Alaska Native" },
+  { value: "native-hawaiian-other-pacific-islander", label: "Native Hawaiian/Other Pacific Islander" },
+  { value: "mena", label: "Middle Eastern/North African (MENA)" },
+  { value: "other-prefer-not-to-say", label: "Other/Prefer not to say" },
 ];
 
 const scaleOptions = [
   { value: "", label: "Select a rating" },
-  { value: "1", label: "1 - None" },
-  { value: "2", label: "2 - Low" },
-  { value: "3", label: "3 - Moderate" },
-  { value: "4", label: "4 - High" },
-  { value: "5", label: "5 - Very high" },
+  { value: "1", label: "1" },
+  { value: "2", label: "2" },
+  { value: "3", label: "3" },
+  { value: "4", label: "4" },
+  { value: "5", label: "5" },
+  { value: "6", label: "6" },
+  { value: "7", label: "7" },
+  { value: "8", label: "8" },
+  { value: "9", label: "9" },
+  { value: "10", label: "10" },
 ];
 
 const yesNoOptions = [
@@ -41,12 +46,17 @@ const yesNoOptions = [
 ];
 
 const initialState: QuestionnaireData = {
+  ethnicity: "",
   age: "",
   gender: "",
-  educationLevel: "",
-  aiContentExperience: "",
-  videoProductionExperience: "",
-  eyeProblems: "",
+  genderSelfDescribe: "",
+  visualImpairment: "",
+  studentStatus: "",
+  aiExperience: "",
+  filmingExperience: "",
+  editingExperience: "",
+  computerScienceExperience: "",
+  plantIdentificationSkill: "",
 };
 
 export default function QuestionnairePage() {
@@ -83,21 +93,7 @@ export default function QuestionnairePage() {
     setError("");
 
     try {
-      const response = await fetch("/api/questionnaire", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sessionId,
-          questionnaire: form,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Unable to save the questionnaire.");
-      }
-
+      localStorage.setItem("studyQuestionnaire", JSON.stringify(form));
       router.push("/study");
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Something went wrong.");
@@ -115,8 +111,31 @@ export default function QuestionnairePage() {
 
         <form className="form" onSubmit={handleSubmit}>
           <div className="field">
+            <label htmlFor="ethnicity">What is your Ethnicity?</label>
+            <select
+              id="ethnicity"
+              value={form.ethnicity}
+              onChange={(event) => updateField("ethnicity", event.target.value)}
+              required
+            >
+              {ethnicityOptions.map((option) => (
+                <option key={option.value || "placeholder"} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
             <label htmlFor="age">Age</label>
-            <input id="age" value={form.age} onChange={(event) => updateField("age", event.target.value)} required />
+            <input
+              id="age"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={form.age}
+              onChange={(event) => updateField("age", event.target.value.replace(/\D/g, ""))}
+              required
+            />
           </div>
 
           <div className="field">
@@ -136,63 +155,121 @@ export default function QuestionnairePage() {
           </div>
 
           <div className="field">
-            <label htmlFor="educationLevel">Level of education</label>
-            <select
-              id="educationLevel"
-              value={form.educationLevel}
-              onChange={(event) => updateField("educationLevel", event.target.value)}
-              required
-            >
-              {educationOptions.map((option) => (
-                <option key={option.value || "placeholder"} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <label htmlFor="genderSelfDescribe">Gender self-description</label>
+            <input
+              id="genderSelfDescribe"
+              value={form.genderSelfDescribe}
+              onChange={(event) => updateField("genderSelfDescribe", event.target.value)}
+              disabled={form.gender !== "self-describe"}
+            />
           </div>
 
           <div className="field">
-            <label htmlFor="aiContentExperience">Experience with AI content (1-5)</label>
+            <label htmlFor="visualImpairment">Do you have a visual impairment?</label>
             <select
-              id="aiContentExperience"
-              value={form.aiContentExperience}
-              onChange={(event) => updateField("aiContentExperience", event.target.value)}
-              required
-            >
-              {scaleOptions.map((option) => (
-                <option key={option.value || "placeholder"} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label htmlFor="videoProductionExperience">Experience with video production (1-5)</label>
-            <select
-              id="videoProductionExperience"
-              value={form.videoProductionExperience}
-              onChange={(event) => updateField("videoProductionExperience", event.target.value)}
-              required
-            >
-              {scaleOptions.map((option) => (
-                <option key={`video-${option.value || "placeholder"}`} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label htmlFor="eyeProblems">Do you have any eye problems or vision-related concerns?</label>
-            <select
-              id="eyeProblems"
-              value={form.eyeProblems}
-              onChange={(event) => updateField("eyeProblems", event.target.value)}
+              id="visualImpairment"
+              value={form.visualImpairment}
+              onChange={(event) => updateField("visualImpairment", event.target.value)}
               required
             >
               {yesNoOptions.map((option) => (
                 <option key={option.value || "placeholder"} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="studentStatus">Are you a student?</label>
+            <select
+              id="studentStatus"
+              value={form.studentStatus}
+              onChange={(event) => updateField("studentStatus", event.target.value)}
+              required
+            >
+              {yesNoOptions.map((option) => (
+                <option key={option.value || "placeholder"} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="aiExperience">How much experience do you have with AI? (1-10)</label>
+            <select
+              id="aiExperience"
+              value={form.aiExperience}
+              onChange={(event) => updateField("aiExperience", event.target.value)}
+              required
+            >
+              {scaleOptions.map((option) => (
+                <option key={`ai-${option.value || "placeholder"}`} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="filmingExperience">How much experience do you have with Filming? (1-10)</label>
+            <select
+              id="filmingExperience"
+              value={form.filmingExperience}
+              onChange={(event) => updateField("filmingExperience", event.target.value)}
+              required
+            >
+              {scaleOptions.map((option) => (
+                <option key={`filming-${option.value || "placeholder"}`} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="editingExperience">How much experience do you have with Editing? (1-10)</label>
+            <select
+              id="editingExperience"
+              value={form.editingExperience}
+              onChange={(event) => updateField("editingExperience", event.target.value)}
+              required
+            >
+              {scaleOptions.map((option) => (
+                <option key={`editing-${option.value || "placeholder"}`} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="computerScienceExperience">How much experience do you have with Computer Science? (1-10)</label>
+            <select
+              id="computerScienceExperience"
+              value={form.computerScienceExperience}
+              onChange={(event) => updateField("computerScienceExperience", event.target.value)}
+              required
+            >
+              {scaleOptions.map((option) => (
+                <option key={`cs-${option.value || "placeholder"}`} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="plantIdentificationSkill">How well can you identify plants from an image? (1-10)</label>
+            <select
+              id="plantIdentificationSkill"
+              value={form.plantIdentificationSkill}
+              onChange={(event) => updateField("plantIdentificationSkill", event.target.value)}
+              required
+            >
+              {scaleOptions.map((option) => (
+                <option key={`plants-${option.value || "placeholder"}`} value={option.value}>
                   {option.label}
                 </option>
               ))}

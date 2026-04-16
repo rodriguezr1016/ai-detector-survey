@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { assignBatchToSession } from "@/lib/storage";
+import { getActiveBatchAssignment } from "@/lib/storage";
 
 export async function POST() {
   const sessionId = randomUUID();
 
   try {
-    const assignment = await assignBatchToSession(sessionId);
+    const assignment = await getActiveBatchAssignment();
     return NextResponse.json({ sessionId, assignment });
   } catch (error) {
     return NextResponse.json(

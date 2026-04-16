@@ -97,6 +97,12 @@ textarea {
   padding: 1.25rem;
 }
 
+.study-list {
+  margin: 0;
+  padding-left: 1.4rem;
+  line-height: 1.65;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

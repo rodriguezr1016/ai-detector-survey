@@ -25,12 +25,17 @@ export type StudyUsageState = {
 };
 
 export type QuestionnaireData = {
+  ethnicity: string;
   age: string;
   gender: string;
-  educationLevel: string;
-  aiContentExperience: string;
-  videoProductionExperience: string;
-  eyeProblems: string;
+  genderSelfDescribe: string;
+  visualImpairment: string;
+  studentStatus: string;
+  aiExperience: string;
+  filmingExperience: string;
+  editingExperience: string;
+  computerScienceExperience: string;
+  plantIdentificationSkill: string;
 };
 
 export type VideoResponse = {
@@ -42,5 +47,18 @@ export type VideoResponse = {
   positionInBatch: number;
   answer: VideoClassification;
   reason: string;
-  elapsedSeconds: number;
+  elapsedTime: number;
+};
+
+export type StoredVideoResponse = Omit<VideoResponse, "sessionId"> & {
+  correctAnswer: VideoClassification;
+  isCorrect: boolean;
+  savedAt: string;
+};
+
+export type CompletionPayload = {
+  sessionId: string;
+  batchIndex: number;
+  questionnaire: QuestionnaireData;
+  responses: VideoResponse[];
 };

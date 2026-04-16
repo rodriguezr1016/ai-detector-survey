@@ -1,19 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAssignedBatch } from "@/lib/storage";
+import { NextResponse } from "next/server";
+import { getActiveBatchAssignment } from "@/lib/storage";
 import { shuffleVideos } from "@/lib/videos";
 
-export async function GET(request: NextRequest) {
-  const sessionId = request.nextUrl.searchParams.get("sessionId");
-
-  if (!sessionId) {
-    return NextResponse.json({ error: "Missing session ID." }, { status: 400 });
-  }
-
+export async function GET() {
   try {
-    const { assignment, videos, totalBatches } = await getAssignedBatch(sessionId);
+    const { batchNumber, videos, totalBatches } = await getActiveBatchAssignment();
 
     return NextResponse.json({
-      batchNumber: assignment.batchIndex + 1,
+      batchNumber,
+      batchIndex: batchNumber - 1,
       totalBatches,
       videos: shuffleVideos(videos),
     });
