@@ -12,6 +12,7 @@ import { getCorrectAnswerForVideo, getVideoBatches, getVideoLibrary } from "@/li
 
 const sessionsPerBatch = 3;
 const studyStateDocumentId = "video-batches";
+const forcedBatchIndex = 3;
 
 type StudyUsageDocument = StudyUsageState & {
   _id: string;
@@ -193,26 +194,20 @@ async function resetStudyCycle() {
 }
 
 export async function getActiveBatchAssignment() {
-  const { studyState } = await getCollections();
   const videoBatches = getVideoBatches(getVideoLibrary());
-  let usageState = await ensureStudyState();
+  const usageState = await ensureStudyState();
+  const forcedBatch = videoBatches[forcedBatchIndex];
 
-  if (usageState.batches.every((batch) => batch.completedSessions >= sessionsPerBatch)) {
-    usageState = await resetStudyCycle();
-  }
-
-  const availableBatch = usageState.batches.find((batch) => batch.completedSessions < sessionsPerBatch);
-
-  if (!availableBatch) {
-    throw new Error("All configured video batches have already been assigned.");
+  if (!forcedBatch) {
+    throw new Error("Forced batch 4 is not available in the configured video list.");
   }
 
   return {
-    batchIndex: availableBatch.batchIndex,
-    batchNumber: availableBatch.batchIndex + 1,
+    batchIndex: forcedBatchIndex,
+    batchNumber: forcedBatchIndex + 1,
     totalBatches: videoBatches.length,
-    completedBatchUsage: usageState.batches[availableBatch.batchIndex].completedSessions,
-    videos: videoBatches[availableBatch.batchIndex],
+    completedBatchUsage: usageState.batches[forcedBatchIndex]?.completedSessions ?? 0,
+    videos: forcedBatch,
   };
 }
 
